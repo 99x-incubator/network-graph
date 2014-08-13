@@ -4,10 +4,13 @@ require_once 'markdown/Markdown.inc.php';
 use \Michelf\Markdown;
 
 $dataset    = 'default';
+$datafolder = "../data";
 $dataset_qs = '';
+
+
 if (isset($_GET['dataset'])) {
     if (!preg_match('@[^a-z0-9-_ ]@i', $_GET['dataset'])) {
-        if (is_dir('data/' . $_GET['dataset'])) {
+        if (is_dir("$datafolder/" . $_GET['dataset'])) {
             $dataset    = $_GET['dataset'];
             $dataset_qs = "?dataset=$dataset";
         }
@@ -15,10 +18,10 @@ if (isset($_GET['dataset'])) {
 }
 
 function get_html_docs($obj) {
-    global $config, $data, $dataset, $errors;
+    global $config, $data, $dataset, $errors, $datafolder;
 
     $name = str_replace('/', '_', $obj['name']);
-    $filename = "data/$dataset/$name.mkdn";
+    $filename = "$datafolder/$dataset/$name.mkdn";
 
     $name = str_replace('_', '\_', $obj['name']);
     $type = $obj['type'];
@@ -89,14 +92,16 @@ function get_id_string($name) {
 }
 
 function read_config() {
-    global $config, $dataset, $dataset_qs;
-
-    $config = json_decode(file_get_contents("data/$dataset/config.json" ), true);
+    global $config, $dataset, $dataset_qs, $datafolder;
+    //echo "$datafolder/$dataset/config.json";
+    $config = json_decode(file_get_contents("$datafolder/$dataset/config.json" ), true);
     $config['jsonUrl'] = "json.php$dataset_qs";
 }
 
 function read_data() {
-    global $config, $data, $dataset, $errors;
+    global $config, $data, $dataset, $errors, $datafolder;
+    
+    
 
     if (!$config) read_config();
     
@@ -104,8 +109,8 @@ function read_data() {
     
     $skipDependencies = array('');
     
-    if(file_exists("data/$dataset/objects.csv")){
-        $csv = array_map('str_getcsv', file("data/$dataset/objects.csv"));
+    if(file_exists("$datafolder/$dataset/objects.csv")){
+        $csv = array_map('str_getcsv', file("$datafolder/$dataset/objects.csv"));
 
         foreach ($csv as $csvobj) {
             
@@ -122,12 +127,11 @@ function read_data() {
             array_push($json, $jsonobj);
         }
     } else {
-        $json   = json_decode(file_get_contents("data/$dataset/objects.json"), true);
+        $json   = json_decode(file_get_contents("$datafolder/$dataset/objects.json"), true);
     }
     
     $data   = array();
     $errors = array();
-    //echo("test");
 
     foreach ($json as $obj) {
         $data[$obj['name']] = $obj;
